@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using GameNetcodeStuff;
@@ -94,7 +95,7 @@ namespace MoreCompany
 	{
 		public static bool Prefix(QuickMenuManager __instance, ulong steamId, string playerName, int playerObjectId)
 		{
-			QuickmenuVisualInjectPatch.PopulateQuickMenu(__instance);
+			__instance.StartCoroutine(QuickmenuVisualInjectPatch.PopulateQuickMenu(__instance));
 			MainClass.EnablePlayerObjectsBasedOnConnected();
 			return false;
 		}
@@ -105,7 +106,7 @@ namespace MoreCompany
 	{
 		public static bool Prefix(QuickMenuManager __instance)
 		{
-			QuickmenuVisualInjectPatch.PopulateQuickMenu(__instance);
+			__instance.StartCoroutine(QuickmenuVisualInjectPatch.PopulateQuickMenu(__instance));
 			return false;
 		}
 	}
@@ -146,7 +147,7 @@ namespace MoreCompany
 			quickMenuScrollInstance = spawnedQuickmenu;
 		}
 
-		public static void PopulateQuickMenu(QuickMenuManager __instance)
+		public static IEnumerator PopulateQuickMenu(QuickMenuManager __instance)
 		{
 			int childCount = quickMenuScrollInstance.transform.Find("Holder").childCount;
 			
@@ -159,10 +160,12 @@ namespace MoreCompany
 			{
 				GameObject.Destroy(gameObject);
 			}
-			if (!StartOfRound.Instance || !StartOfRound.Instance.localPlayerController)
+			if (!StartOfRound.Instance)
 			{
-				return;
+				yield break;
 			}
+
+			yield return new WaitUntil(() => StartOfRound.Instance.localPlayerController != null);
 
 			for  (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++)
 			{
